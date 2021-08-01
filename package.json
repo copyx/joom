@@ -1,0 +1,25 @@
+{
+  "name": "joom",
+  "engines": {
+    "node": "^14.17.4"
+  },
+  "version": "0.1.0",
+  "main": "index.js",
+  "repository": "git@github.com:copyx/joom.git",
+  "author": "Jingi Kim <copyx00@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "nodemon"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.14.8",
+    "@babel/core": "^7.14.8",
+    "@babel/node": "^7.14.9",
+    "@babel/preset-env": "^7.14.9",
+    "nodemon": "^2.0.12"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "pug": "^3.0.2"
+  }
+}
