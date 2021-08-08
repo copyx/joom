@@ -12,6 +12,8 @@ app.set("views", join(__dirname, "/views"));
 app.use("/public", express.static(join(__dirname, "/public")));
 
 app.get("/", (req, res) => res.render("home"));
+app.get("/chat", (req, res) => res.render("chat"));
+app.get("/video-call", (req, res) => res.render("video-call"));
 app.get("/*", (req, res) => res.redirect("/"));
 
 const httpServer = http.createServer(app);
