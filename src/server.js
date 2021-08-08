@@ -1,6 +1,7 @@
 import http from "http";
 // import WebSocket from "ws";
-import SocketIO from "socket.io";
+import SocketIO, { Server } from "socket.io";
+import { instrument } from "@socket.io/admin-ui";
 import express from "express";
 import { join } from "path";
 
@@ -14,15 +15,62 @@ app.get("/", (req, res) => res.render("home"));
 app.get("/*", (req, res) => res.redirect("/"));
 
 const httpServer = http.createServer(app);
-const wsServer = SocketIO(httpServer);
+const wsServer = new Server(httpServer, {
+  cors: {
+    origin: ["https://admin.socket.io"],
+    credentials: true,
+  },
+});
+
+instrument(wsServer, {
+  auth: false,
+});
+
+function getPublicRooms() {
+  const { sids, rooms } = wsServer.sockets.adapter;
+  const publicRooms = [];
+  rooms.forEach((_, key) => {
+    if (sids.get(key) === undefined) {
+      publicRooms.push(key);
+    }
+  });
+  return publicRooms;
+}
+
+const countUsersInRoom = (roomName) =>
+  wsServer.sockets.adapter.rooms.get(roomName)?.size;
 
 wsServer.on("connection", (socket) => {
+  socket["nickname"] = "Anonymous";
+  wsServer.sockets.emit("room-change", getPublicRooms());
+
   socket.onAny((event) => {
     console.log(`Socket Event: ${event}`);
   });
   socket.on("enter-room", (roomName, done) => {
     socket.join(roomName);
+    done(countUsersInRoom(roomName));
+    socket
+      .to(roomName)
+      .emit("welcome", socket.nickname, countUsersInRoom(roomName));
+    wsServer.sockets.emit("room-change", getPublicRooms());
+  });
+  socket.on("disconnecting", () => {
+    socket.rooms.forEach((room) =>
+      socket.to(room).emit("bye", socket.nickname, countUsersInRoom(room) - 1)
+    );
+  });
+  socket.on("disconnect", () =>
+    wsServer.sockets.emit("room-change", getPublicRooms())
+  );
+  socket.on("new-message", (msg, roomName, done) => {
+    socket.to(roomName).emit("new-message", msg, socket.nickname);
     done();
+  });
+  socket.on("nickname", (nickname, roomName) => {
+    const oldNickname = socket.nickname;
+    socket["nickname"] = nickname;
+    socket.to(roomName).emit("nickname", socket.nickname, oldNickname);
   });
 });
 
