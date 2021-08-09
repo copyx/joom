@@ -4,10 +4,14 @@ const myFace = document.getElementById("myFace");
 const muteBtn = document.getElementById("mute");
 const cameraOffBtn = document.getElementById("cameraOff");
 const cameraSelect = document.getElementById("cameras");
+const call = document.getElementById("call");
+
+call.hidden = true;
 
 let myStream;
-let muted = false;
+let muted = true;
 let cameraOff = false;
+let roomName;
 
 async function getCameras() {
   try {
@@ -45,6 +49,9 @@ async function getMedia(deviceId) {
     if (!deviceId) {
       await getCameras();
     }
+
+    muteAudio(muted);
+    turnOffCamera(cameraOff);
   } catch (e) {
     console.error(e);
   }
@@ -53,20 +60,48 @@ async function getMedia(deviceId) {
 getMedia();
 
 muteBtn.addEventListener("click", () => {
-  myStream
-    .getAudioTracks()
-    .forEach((track) => (track.enabled = !track.enabled));
-  muteBtn.innerText = muted ? "Mute" : "Unmute";
   muted = !muted;
+  muteAudio(muted);
 });
 cameraOffBtn.addEventListener("click", () => {
-  myStream
-    .getVideoTracks()
-    .forEach((track) => (track.enabled = !track.enabled));
-  cameraOffBtn.innerText = cameraOff ? "Turn Camera Off" : "Turn Camera On";
   cameraOff = !cameraOff;
+  turnOffCamera(cameraOff);
 });
 
 cameraSelect.addEventListener("input", () => {
   getMedia(cameraSelect.value);
+});
+
+function turnOffCamera(cameraOff) {
+  myStream.getVideoTracks().forEach((track) => (track.enabled = !cameraOff));
+  cameraOffBtn.innerText = cameraOff ? "Turn Camera On" : "Turn Camera Off";
+}
+
+function muteAudio(muted) {
+  myStream.getAudioTracks().forEach((track) => (track.enabled = !muted));
+  muteBtn.innerText = muted ? "Unmute" : "Mute";
+}
+
+// Welcome
+const welcome = document.getElementById("welcome");
+const welcomeForm = welcome.querySelector("form");
+
+welcomeForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const input = welcomeForm.querySelector("input");
+  input.value;
+  socket.emit("join-room", input.value, startMedia);
+  roomName = input.value;
+  input.value = "";
+});
+
+function startMedia() {
+  welcome.hidden = true;
+  call.hidden = false;
+  getMedia();
+}
+
+// Socket Code
+socket.on("welcome", () => {
+  console.log("someone joined");
 });

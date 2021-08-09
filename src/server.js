@@ -74,6 +74,12 @@ wsServer.on("connection", (socket) => {
     socket["nickname"] = nickname;
     socket.to(roomName).emit("nickname", socket.nickname, oldNickname);
   });
+
+  socket.on("join-room", (roomName, done) => {
+    socket.join(roomName);
+    done();
+    socket.to(roomName).emit("welcome");
+  });
 });
 
 // const wss = new WebSocket.Server({ server });

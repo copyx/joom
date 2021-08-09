@@ -11,10 +11,15 @@ html(lang="en")
   body 
     +header('Video Call')
     main
-      #myStream 
-        video#myFace(autoplay, playsinline, width="400", height="400")
-        button#mute Mute
-        button#cameraOff Turn Camera Off
-        select#cameras
+      #welcome 
+        form
+          input(placeholder="Room name", required, type="text")
+          button Enter room
+      #call
+        #myStream 
+          video#myFace(autoplay, playsinline, width="400", height="400")
+          button#mute Mute
+          button#cameraOff Turn Camera Off
+          select#cameras
     script(src="/socket.io/socket.io.js")
     script(src="/public/js/videoCall.js")
