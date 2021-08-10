@@ -58,8 +58,6 @@ async function getMedia(deviceId) {
   }
 }
 
-getMedia();
-
 muteBtn.addEventListener("click", () => {
   muted = !muted;
   muteAudio(muted);
@@ -71,6 +69,14 @@ cameraOffBtn.addEventListener("click", () => {
 
 cameraSelect.addEventListener("input", () => {
   getMedia(cameraSelect.value);
+  if (myPeerConnection) {
+    const videoTrack = myStream.getVideoTracks()[0];
+    const videoSender = myPeerConnection
+      .getSenders()
+      .facingMode((sender) => sender.track.kind === "video");
+    console.log(videoSender);
+    videoSender.replaceTrack(videoTrack);
+  }
 });
 
 function turnOffCamera(cameraOff) {
@@ -108,24 +114,44 @@ socket.on("welcome", async () => {
   const offer = await myPeerConnection.createOffer();
   myPeerConnection.setLocalDescription(offer);
   socket.emit("offer", offer, roomName);
+  console.log("Sent the offer");
 });
 
 socket.on("offer", async (offer) => {
+  console.log("Receive the offer");
   myPeerConnection.setRemoteDescription(offer);
   const answer = await myPeerConnection.createAnswer(offer);
   myPeerConnection.setLocalDescription(answer);
   socket.emit("answer", answer, roomName);
+  console.log("Sent the answer");
 });
 
 socket.on("answer", async (answer) => {
-  console.log(answer);
+  console.log("Receive the answer");
   myPeerConnection.setRemoteDescription(answer);
+});
+
+socket.on("ice", (ice) => {
+  console.log("Receive candidate");
+  myPeerConnection.addIceCandidate(ice);
 });
 
 // RTC Code
 function makeConnection() {
   myPeerConnection = new RTCPeerConnection();
+  myPeerConnection.addEventListener("icecandidate", onIceCandidate);
+  myPeerConnection.addEventListener("addstream", onAddStream);
   myStream
     .getTracks()
     .forEach((track) => myPeerConnection.addTrack(track, myStream));
+}
+
+function onIceCandidate(data) {
+  console.log("Sent candidate");
+  socket.emit("ice", data.candidate, roomName);
+}
+
+function onAddStream(data) {
+  const peersVideo = document.getElementById("peersFace");
+  peersVideo.srcObject = data.stream;
 }
