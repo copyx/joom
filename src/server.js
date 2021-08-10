@@ -75,10 +75,17 @@ wsServer.on("connection", (socket) => {
     socket.to(roomName).emit("nickname", socket.nickname, oldNickname);
   });
 
-  socket.on("join-room", (roomName, done) => {
+  socket.on("join-room", (roomName) => {
     socket.join(roomName);
-    done();
     socket.to(roomName).emit("welcome");
+  });
+
+  socket.on("offer", (offer, roomName) => {
+    socket.to(roomName).emit("offer", offer);
+  });
+
+  socket.on("answer", (answer, roomName) => {
+    socket.to(roomName).emit("answer", answer);
   });
 });
 
