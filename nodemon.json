@@ -1,4 +1,8 @@
 {
-  "ignore": ["src/public/*"],
-  "exec": "babel-node src/server.js"
+  "exec": "ts-node ./src/server.js",
+  "events": {
+    "restart": "tsc"
+  },
+  "verbose": true,
+  "watch": ["src/**/*"]
 }

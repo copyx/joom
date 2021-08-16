@@ -8,8 +8,9 @@ import { join } from "path";
 const app = express();
 
 app.set("view engine", "pug");
-app.set("views", join(__dirname, "/views"));
-app.use("/public", express.static(join(__dirname, "/public")));
+app.set("views", "views");
+app.use("/public", express.static("public"));
+app.use("/public/js", express.static(join(__dirname, "/public/js")));
 
 app.get("/", (req, res) => res.render("home"));
 app.get("/chat", (req, res) => res.render("chat"));
